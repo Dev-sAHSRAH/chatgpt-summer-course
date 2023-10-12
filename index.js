@@ -1,4 +1,3 @@
-import { process } from "/env.js";
 import { Configuration, OpenAIApi } from "openai";
 import { backOff } from "exponential-backoff";
 
@@ -7,30 +6,30 @@ const setupInputContainer = document.getElementById("setup-input-container");
 const movieBossText = document.getElementById("movie-boss-text");
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
 });
 delete configuration.baseOptions.headers["User-Agent"];
 
 const openai = new OpenAIApi(configuration);
 
 document.getElementById("send-btn").addEventListener("click", () => {
-  if (setupTextarea.value) {
-    const userInput = setupTextarea.value;
-    setupInputContainer.innerHTML = `<img src="images/loading.svg" class="loading" id="loading">`;
-    movieBossText.innerText = `Ok, just wait a second while my digital brain digests that...`;
-    fetchBotReply(userInput);
-    const output = document.querySelector(".output-container");
-    output.style.display = "block";
-    fetchSynopsis(userInput);
-  }
+    if (setupTextarea.value) {
+        const userInput = setupTextarea.value;
+        setupInputContainer.innerHTML = `<img src="images/loading.svg" class="loading" id="loading">`;
+        movieBossText.innerText = `Ok, just wait a second while my digital brain digests that...`;
+        fetchBotReply(userInput);
+        const output = document.querySelector(".output-container");
+        output.style.display = "block";
+        fetchSynopsis(userInput);
+    }
 });
 
 async function fetchBotReply(outline) {
-  try {
-    const response = await backOff(() =>
-      openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Generate a short message to enthusiastically say an outline sounds interesting and that you need some minutes to think about it.
+    try {
+        const response = await backOff(() =>
+            openai.createCompletion({
+                model: "text-davinci-003",
+                prompt: `Generate a short message to enthusiastically say an outline sounds interesting and that you need some minutes to think about it.
             ###
             outline: Two dogs fall in love and move to Hawaii to learn to surf.
             message: I'll need to think about that. But your idea is amazing! I love the bit about Hawaii!
@@ -44,22 +43,22 @@ async function fetchBotReply(outline) {
             outline: ${outline}
             message: 
             `,
-        max_tokens: 60,
-      })
-    );
+                max_tokens: 60,
+            })
+        );
 
-    movieBossText.innerText = response.data.choices[0].text.trim();
-  } catch (error) {
-    console.log("something went wrong in bot reply");
-  }
+        movieBossText.innerText = response.data.choices[0].text.trim();
+    } catch (error) {
+        console.log("something went wrong in bot reply");
+    }
 }
 
 async function fetchSynopsis(outline) {
-  try {
-    const response = await backOff(() =>
-      openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Generate an engaging, professional and marketable movie synopsis based on an outline. The synopsis should include actors names in brackets after each character. Choose actors that would be ideal for this role. 
+    try {
+        const response = await backOff(() =>
+            openai.createCompletion({
+                model: "text-davinci-003",
+                prompt: `Generate an engaging, professional and marketable movie synopsis based on an outline. The synopsis should include actors names in brackets after each character. Choose actors that would be ideal for this role. 
                 ###
                 outline: A big-headed daredevil fighter pilot goes back to school only to be sent on a deadly mission.
                 synopsis: The Top Gun Naval Fighter Weapons School is where the best of the best train to refine their elite flying skills. 
@@ -73,46 +72,46 @@ async function fetchSynopsis(outline) {
                 outline: ${outline}
                 synopsis: 
                 `,
-        max_tokens: 700,
-      })
-    );
+                max_tokens: 700,
+            })
+        );
 
-    const synopsis = response.data.choices[0].text.trim();
-    document.getElementById("output-text").innerText = synopsis;
-    fetchTitle(synopsis);
-    fetchStars(synopsis);
-  } catch (error) {
-    console.log("something went wrong in synopsis");
-  }
+        const synopsis = response.data.choices[0].text.trim();
+        document.getElementById("output-text").innerText = synopsis;
+        fetchTitle(synopsis);
+        fetchStars(synopsis);
+    } catch (error) {
+        console.log("something went wrong in synopsis");
+    }
 }
 
 async function fetchTitle(synopsis) {
-  try {
-    const title = document.getElementById("output-title");
+    try {
+        const title = document.getElementById("output-title");
 
-    const response = await backOff(() =>
-      openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Generate a catchy movie title for this synopsis: ${synopsis}. The tile should be gripping and short`,
-        max_tokens: 25,
-        temperature: 0.7,
-      })
-    );
+        const response = await backOff(() =>
+            openai.createCompletion({
+                model: "text-davinci-003",
+                prompt: `Generate a catchy movie title for this synopsis: ${synopsis}. The tile should be gripping and short`,
+                max_tokens: 25,
+                temperature: 0.7,
+            })
+        );
 
-    title.innerText = response.data.choices[0].text.trim();
+        title.innerText = response.data.choices[0].text.trim();
 
-    fetchImagePrompt(title.innerText, synopsis);
-  } catch (error) {
-    console.log("error in title");
-  }
+        fetchImagePrompt(title.innerText, synopsis);
+    } catch (error) {
+        console.log("error in title");
+    }
 }
 
 async function fetchStars(synopsis) {
-  try {
-    const response = await backOff(() =>
-      openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Extract the actors names in brackets from the synopsis: ${synopsis}.
+    try {
+        const response = await backOff(() =>
+            openai.createCompletion({
+                model: "text-davinci-003",
+                prompt: `Extract the actors names in brackets from the synopsis: ${synopsis}.
             Return the names comma-separated
             ###
             synopsis: The Top Gun Naval Fighter Weapons School is where the best of the best train to refine their elite flying skills. 
@@ -127,22 +126,22 @@ async function fetchStars(synopsis) {
             synopsis: ${synopsis}
             names:
             `,
-        max_tokens: 30,
-      })
-    );
-    const stars = document.getElementById("output-stars");
-    stars.innerText = response.data.choices[0].text.trim();
-  } catch (error) {
-    console.log("error in stars");
-  }
+                max_tokens: 30,
+            })
+        );
+        const stars = document.getElementById("output-stars");
+        stars.innerText = response.data.choices[0].text.trim();
+    } catch (error) {
+        console.log("error in stars");
+    }
 }
 
 async function fetchImagePrompt(title, synopsis) {
-  try {
-    const response = await backOff(() =>
-      openai.createCompletion({
-        model: "text-davinci-003",
-        prompt: `Give a short description of an image which could be used to advertise a movie based on a title and synopsis. The description should be rich in visual detail but contain no names.
+    try {
+        const response = await backOff(() =>
+            openai.createCompletion({
+                model: "text-davinci-003",
+                prompt: `Give a short description of an image which could be used to advertise a movie based on a title and synopsis. The description should be rich in visual detail but contain no names.
             ###
             title: Love's Time Warp
             synopsis: When scientist and time traveller Wendy (Emma Watson) is sent back to the 1920s to assassinate a future dictator, she never expected to fall in love with them. As Wendy infiltrates the dictator's inner circle, she soon finds herself torn between her mission and her growing feelings for the leader (Brie Larson). With the help of a mysterious stranger from the future (Josh Brolin), Wendy must decide whether to carry out her mission or follow her heart. But the choices she makes in the 1920s will have far-reaching consequences that reverberate through the ages.
@@ -156,38 +155,42 @@ async function fetchImagePrompt(title, synopsis) {
             synopsis: ${synopsis}
             image description: 
             `,
-        temperature: 0.8,
-        max_tokens: 100,
-      })
-    );
+                temperature: 0.8,
+                max_tokens: 100,
+            })
+        );
 
-    fetchImage(response.data.choices[0].text.trim());
-  } catch (error) {
-    console.log("Error in image prompt");
-  }
+        fetchImage(response.data.choices[0].text.trim());
+    } catch (error) {
+        console.log("Error in image prompt");
+    }
 }
 
 async function fetchImage(imagePrompt) {
-  try {
-    const response = await backOff(() =>
-      openai.createImage({
-        prompt: `${imagePrompt}. There should be no text in this image.`,
-        n: 1,
-        size: "256x256",
-        response_format: "b64_json",
-      })
-    );
+    try {
+        const response = await backOff(() =>
+            openai.createImage({
+                prompt: `${imagePrompt}. There should be no text in this image.`,
+                n: 1,
+                size: "256x256",
+                response_format: "b64_json",
+            })
+        );
 
-    document.getElementById(
-      "output-img-container"
-    ).innerHTML = `<img src="data:image/png;base64,${response.data.data[0].b64_json}">`;
-    setupInputContainer.innerHTML = `<button id="view-pitch-btn" class="view-pitch-btn">View Pitch</button>`;
-    document.getElementById("view-pitch-btn").addEventListener("click", () => {
-      document.getElementById("setup-container").style.display = "none";
-      document.getElementById("output-container").style.display = "flex";
-      movieBossText.innerText = `This idea is so good I'm jealous! It's gonna make you rich for sure! Remember, I want 10% 💰`;
-    });
-  } catch (error) {
-    console.log("Error in image");
-  }
+        document.getElementById(
+            "output-img-container"
+        ).innerHTML = `<img src="data:image/png;base64,${response.data.data[0].b64_json}">`;
+        setupInputContainer.innerHTML = `<button id="view-pitch-btn" class="view-pitch-btn">View Pitch</button>`;
+        document
+            .getElementById("view-pitch-btn")
+            .addEventListener("click", () => {
+                document.getElementById("setup-container").style.display =
+                    "none";
+                document.getElementById("output-container").style.display =
+                    "flex";
+                movieBossText.innerText = `This idea is so good I'm jealous! It's gonna make you rich for sure! Remember, I want 10% 💰`;
+            });
+    } catch (error) {
+        console.log("Error in image");
+    }
 }
